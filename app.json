@@ -14,10 +14,10 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.ekomlenovic.sudoku"
+      "bundleIdentifier": "com.imelein.sudoku"
     },
     "android": {
-      "package": "com.ekomlenovic.sudoku",
+      "package": "com.imelein.sudoku",
       "versionCode": 1,
       "adaptiveIcon": {
         "backgroundColor": "#1A2B4C",
@@ -41,6 +41,6 @@
     "extra": {
       "router": {}
     },
-    "owner": "ekomlenovic"
+    "owner": "imelein"
   }
 }

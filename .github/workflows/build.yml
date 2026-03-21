@@ -74,10 +74,10 @@ jobs:
         working-directory: ios
         run: |
           xcodebuild archive \
-            -workspace RushHours.xcworkspace \
-            -scheme RushHours \
+            -workspace Sudoku.xcworkspace \
+            -scheme Sudoku \
             -configuration Release \
-            -archivePath ../build/RushHours.xcarchive \
+            -archivePath ../build/Sudoku.xcarchive \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO \
@@ -88,15 +88,15 @@ jobs:
       - name: Package unsigned IPA
         run: |
           mkdir -p build/ipa/Payload
-          cp -r build/RushHours.xcarchive/Products/Applications/RushHours.app build/ipa/Payload/
+          cp -r build/Sudoku.xcarchive/Products/Applications/Sudoku.app build/ipa/Payload/
           cd build/ipa
-          zip -r ../../rush-hours-unsigned.ipa Payload
+          zip -r ../../sudoku-unsigned.ipa Payload
 
       - name: Upload IPA artifact
         uses: actions/upload-artifact@v4
         with:
           name: ios-build
-          path: rush-hours-unsigned.ipa
+          path: sudoku-unsigned.ipa
 
   build-android:
     name: Build Android
@@ -177,7 +177,7 @@ jobs:
       - name: Rename binaries
         run: |
           if [ -f "app-release.apk" ]; then
-            mv app-release.apk rush-hours.apk
+            mv app-release.apk sudoku.apk
             echo "HAS_APK=true" >> $GITHUB_ENV
           else
             echo "HAS_APK=false" >> $GITHUB_ENV
@@ -188,7 +188,7 @@ jobs:
         if: github.ref == 'refs/heads/main'
         with:
           tag_name: v${{ needs.prepare.outputs.version }}-b${{ github.run_number }}
-          name: Rush Hours v${{ needs.prepare.outputs.version }} (Build ${{ github.run_number }})
+          name: Sudoku v${{ needs.prepare.outputs.version }} (Build ${{ github.run_number }})
           body: |
             ## Release v${{ needs.prepare.outputs.version }}
             
@@ -200,8 +200,8 @@ jobs:
             ### Android (APK)
             Installation directe.
           files: |
-            rush-hours-unsigned.ipa
-            rush-hours.apk
+            sudoku-unsigned.ipa
+            sudoku.apk
           draft: false
           prerelease: false
           fail_on_unmatched_files: false
@@ -210,10 +210,10 @@ jobs:
 
       - name: Update Update Sources & Push Changes
         run: |
-          IPA_SIZE=$(stat -c%s rush-hours-unsigned.ipa)
+          IPA_SIZE=$(stat -c%s sudoku-unsigned.ipa)
           
           if [ "${{ env.HAS_APK }}" = "true" ]; then
-            APK_SIZE=$(stat -c%s rush-hours.apk)
+            APK_SIZE=$(stat -c%s sudoku.apk)
           else
             APK_SIZE=0
           fi
@@ -221,8 +221,8 @@ jobs:
           VERSION="${{ needs.prepare.outputs.version }}"
           TAG_NAME="v${VERSION}-b${{ github.run_number }}"
           BASE_URL="https://github.com/${{ github.repository }}/releases/download/${TAG_NAME}"
-          IPA_URL="${BASE_URL}/rush-hours-unsigned.ipa"
-          APK_URL="${BASE_URL}/rush-hours.apk"
+          IPA_URL="${BASE_URL}/sudoku-unsigned.ipa"
+          APK_URL="${BASE_URL}/sudoku.apk"
           DATE=$(date +'%Y-%m-%d')
           
           node -e "
