@@ -1,17 +1,20 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, StyleSheet, Pressable, Dimensions, useColorScheme, Modal, Switch, Animated as RNAnimated, Easing } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Dimensions, useColorScheme, Modal, Switch, Animated as RNAnimated, Easing, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import Animated, { FadeInDown, FadeInUp, withTiming, useAnimatedStyle, useSharedValue, withRepeat, withSequence } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import { haptics } from '@/utils/haptics';
-import { useGameStore, Difficulty } from '@/store/gameStore';
 import { useAudio } from '@/context/AudioProvider';
 import { useTranslation } from 'react-i18next';
 import i18n, { changeLanguage } from '@/utils/i18n';
 import { RFValue } from '@/utils/responsive';
 import { BlurView } from 'expo-blur';
 import { generatePuzzle } from '@/utils/sudoku';
+import { useGameStore, Difficulty, BASE_LEVEL_COUNT, Level } from '@/store/gameStore';
+import baseLevelsData from '@/utils/baseLevels.json';
+
+const MASTER_BASE_LEVELS = baseLevelsData as Level[];
 
 const { width, height } = Dimensions.get('window');
 
@@ -59,13 +62,25 @@ export default function HomeScreen() {
     haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     const targetId = (lastPlayedLevelId && lastPlayedLevelId < 900000) ? lastPlayedLevelId : maxUnlockedLevel;
     
-    let levelData = generatedLevels.find(l => l.id === targetId);
+    let levelData = targetId <= BASE_LEVEL_COUNT 
+      ? MASTER_BASE_LEVELS.find(l => l.id === targetId)
+      : generatedLevels.find(l => l.id === targetId);
+
     if (!levelData) {
+      // If it's a map level > 50 that was somehow lost/not generated, we can't play it
+      // but it shouldn't happen with the current logic.
+      if (targetId <= BASE_LEVEL_COUNT) {
+         Alert.alert("Error", "Base level data not found.");
+         return;
+      }
+      
+      // Fallback for safety (though handleLevelPress in Map is the primary entry point)
       const difficulty = getDifficultyForLevel(targetId);
       const { grid, solution } = generatePuzzle(difficulty);
       levelData = { id: targetId, difficulty, initialGrid: grid, solution, updatedAt: Date.now() };
       addGeneratedLevel(levelData);
     }
+    
     loadLevel(levelData);
     router.push(`/game?levelId=${targetId}`);
   };

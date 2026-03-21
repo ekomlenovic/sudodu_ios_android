@@ -33,16 +33,23 @@ export default function GameScreen() {
   useEffect(() => {
     if (levelId === 'daily' && date) {
       if (!currentLevel || currentLevel.id !== 999999) {
-        const { grid, solution } = generatePuzzle('hard');
-        const dailyLevel = {
-           id: 999999,
-           difficulty: 'hard' as const,
-           initialGrid: grid,
-           solution,
-           updatedAt: Date.now()
-        };
-        useGameStore.setState({ dailyLevelDate: date });
-        useGameStore.getState().loadLevel(dailyLevel);
+        const state = useGameStore.getState();
+        // Use cached daily level if it's the exact same day
+        if (state.dailyLevelDate === date && state.currentDailyLevel) {
+           state.loadLevel(state.currentDailyLevel);
+        } else {
+           // Otherwise generate and freeze the new daily
+           const { grid, solution } = generatePuzzle('hard');
+           const dailyLevel = {
+              id: 999999,
+              difficulty: 'hard' as const,
+              initialGrid: grid,
+              solution,
+              updatedAt: Date.now()
+           };
+           useGameStore.setState({ dailyLevelDate: date, currentDailyLevel: dailyLevel });
+           state.loadLevel(dailyLevel);
+        }
       }
     }
   }, [levelId, date]);

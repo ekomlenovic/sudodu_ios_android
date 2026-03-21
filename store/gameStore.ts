@@ -2,6 +2,9 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Haptics from 'expo-haptics';
+import { generatePuzzle, isSafe } from '@/utils/sudoku';
+
+export const BASE_LEVEL_COUNT = 50;
 
 export type Difficulty = 'easy' | 'medium' | 'hard' | 'expert';
 
@@ -80,13 +83,14 @@ export interface SudokuState {
   completeDailyChallenge: (dateKey: string, time: number, stars: number) => void;
   checkAchievements: () => void;
   addGeneratedLevel: (level: Level) => void;
-  purgeCustomLevels: (baseLevelCount: number) => void;
+  softReset: () => void;
+  hardReset: () => void;
+  generatePack: (difficulty: Difficulty, count: number) => Promise<void>;
   
   saveCurrentState: () => void; // call when leaving screen
   
   toggleMusicEnabled: () => void;
   toggleHapticsEnabled: () => void;
-  hardReset: () => void;
 }
 
 export const useGameStore = create<SudokuState>()(
@@ -206,7 +210,7 @@ export const useGameStore = create<SudokuState>()(
       },
 
       validateBoard: () => {
-        const { grid, solution, isHapticsEnabled } = get();
+        const { grid, initialGrid, isHapticsEnabled } = get();
         let errorCount = 0;
         let isFilled = true;
         const newValidatedErrors: {row: number, col: number}[] = [];
@@ -215,9 +219,17 @@ export const useGameStore = create<SudokuState>()(
           for (let c = 0; c < 9; c++) {
             if (grid[r][c] === 0) {
               isFilled = false;
-            } else if (solution[r][c] !== 0 && grid[r][c] !== solution[r][c]) {
-              errorCount++;
-              newValidatedErrors.push({ row: r, col: c });
+            } else if (initialGrid[r][c] === 0) {
+              // Validate user-placed numbers ONLY against direct collisions
+              const val = grid[r][c];
+              grid[r][c] = 0; // Temporarily lift to evaluate collision
+              const safe = isSafe(grid, r, c, val);
+              grid[r][c] = val; // Restore
+
+              if (!safe) {
+                errorCount++;
+                newValidatedErrors.push({ row: r, col: c });
+              }
             }
           }
         }
@@ -381,10 +393,11 @@ export const useGameStore = create<SudokuState>()(
         }
       },
 
-      purgeCustomLevels: (baseLevelCount) => {
+      softReset: () => {
         const { progress, maxUnlockedLevel } = get();
-        const cleanedProgress = progress.filter(p => p.levelId <= baseLevelCount);
-        const clampedUnlocked = Math.min(maxUnlockedLevel, baseLevelCount + 1);
+        // Keep progress only for base levels
+        const cleanedProgress = progress.filter(p => p.levelId <= BASE_LEVEL_COUNT);
+        const clampedUnlocked = Math.min(maxUnlockedLevel, BASE_LEVEL_COUNT + 1);
         
         set({
           generatedLevels: [],
@@ -393,25 +406,43 @@ export const useGameStore = create<SudokuState>()(
         });
       },
 
+      hardReset: () => {
+        set({
+          generatedLevels: [],
+          progress: [],
+          maxUnlockedLevel: 1,
+          lastPlayedLevelId: null
+        });
+      },
+
+      generatePack: async (difficulty: Difficulty, count: number) => {
+        const state = get();
+        // Start ID after BASE_LEVEL_COUNT or highest installed generated level
+        let startId = BASE_LEVEL_COUNT;
+        if (state.generatedLevels.length > 0) {
+            startId = state.generatedLevels.reduce((max, l) => Math.max(max, l.id), BASE_LEVEL_COUNT);
+        }
+        
+        let newLevels: Level[] = [];
+        
+        // Asynchronous loop to prevent blocking the UI thread (allows spinner to animate)
+        for (let i = 0; i < count; i++) {
+           await new Promise(resolve => setTimeout(resolve, 20));
+           const { grid, solution } = generatePuzzle(difficulty);
+           newLevels.push({
+             id: startId + i + 1,
+             difficulty,
+             initialGrid: grid,
+             solution,
+             updatedAt: Date.now()
+           });
+        }
+
+        set({ generatedLevels: [...state.generatedLevels, ...newLevels] });
+      },
+
       toggleMusicEnabled: () => set((state) => ({ isMusicEnabled: !state.isMusicEnabled })),
       toggleHapticsEnabled: () => set((state) => ({ isHapticsEnabled: !state.isHapticsEnabled })),
-
-      hardReset: () => set({
-        progress: [],
-        maxUnlockedLevel: 1,
-        lastPlayedLevelId: null,
-        generatedLevels: [],
-        currentLevel: null,
-        dailyChallengeProgress: {},
-        savedStates: {},
-        achievements: [],
-        grid: Array(9).fill(Array(9).fill(0)),
-        notes: Array(9).fill(Array(9).fill([])),
-        selectedCell: null,
-        mistakes: 0,
-        timer: 0,
-        isPlaying: false,
-      }),
     }),
     {
       name: 'sudoku-storage',
