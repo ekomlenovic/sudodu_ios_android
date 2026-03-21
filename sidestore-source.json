@@ -6,7 +6,7 @@
     {
       "name": "Sudoku",
       "bundleIdentifier": "com.imelein.sudoku",
-      "developerName": "Emilien Komlenovic",
+      "developerName": "eko",
       "localizedDescription": "Sudoku puzzle game.",
       "iconURL": "https://raw.githubusercontent.com/ekomlenovic/sudodu_ios_android/refs/heads/main/assets/icon.png",
       "version": "1.0.1",
