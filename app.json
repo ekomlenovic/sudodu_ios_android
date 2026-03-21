@@ -1,0 +1,46 @@
+{
+  "expo": {
+    "name": "Sudoku",
+    "slug": "sudoku",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "scheme": "sudoku",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#1A2B4C"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.ekomlenovic.sudoku"
+    },
+    "android": {
+      "package": "com.ekomlenovic.sudoku",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "backgroundColor": "#1A2B4C",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png"
+      }
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-audio",
+        {
+          "microphonePermission": false
+        }
+      ],
+      "expo-localization"
+    ],
+    "extra": {
+      "router": {}
+    },
+    "owner": "ekomlenovic"
+  }
+}
