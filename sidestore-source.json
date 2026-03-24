@@ -9,12 +9,12 @@
       "developerName": "eko",
       "localizedDescription": "Sudoku puzzle game.",
       "iconURL": "https://raw.githubusercontent.com/ekomlenovic/sudodu_ios_android/refs/heads/main/assets/icon.png",
-      "version": "1.0.1",
-      "versionDate": "2026-03-21",
+      "version": "1.0.2",
+      "versionDate": "2026-03-24",
       "versionDescription": "Initial rebranding release.",
-      "downloadURL": "https://github.com/ekomlenovic/sudodu_ios_android/releases/download/v1.0.1-b3/sudoku-unsigned.ipa",
-      "size": 11612994,
-      "buildVersion": "3"
+      "downloadURL": "https://github.com/ekomlenovic/sudodu_ios_android/releases/download/v1.0.2-b6/sudoku-unsigned.ipa",
+      "size": 11612917,
+      "buildVersion": "6"
     }
   ]
 }

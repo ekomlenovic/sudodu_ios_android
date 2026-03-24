@@ -9,12 +9,12 @@
       "developerName": "eko",
       "localizedDescription": "Sudoku puzzle game.",
       "iconURL": "https://raw.githubusercontent.com/ekomlenovic/sudodu_ios_android/refs/heads/main/assets/icon.png",
-      "version": "1.0.1",
-      "versionDate": "2026-03-21",
+      "version": "1.0.2",
+      "versionDate": "2026-03-24",
       "versionDescription": "Initial rebranding release.",
       "downloadURL": "https://play.google.com/store/apps/details?id=com.imelein.sudoku",
       "size": 25000000,
-      "buildVersion": "3"
+      "buildVersion": "6"
     }
   ]
 }
