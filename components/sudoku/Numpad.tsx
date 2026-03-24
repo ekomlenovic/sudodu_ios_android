@@ -6,8 +6,25 @@ export const Numpad: React.FC<{ isNotesMode: boolean; toggleNotesMode: () => voi
   isNotesMode,
   toggleNotesMode,
 }) => {
-  const { inputValue, toggleNoteToggleAction, erase, useHint, validateBoard, showErrors, toggleShowErrors } = useGameStore();
+  const { inputValue, toggleNoteToggleAction, erase, useHint, validateBoard, showErrors, toggleShowErrors, grid, solution } = useGameStore();
   const isDark = useColorScheme() === 'dark';
+
+  // Calculate counts for each number (1-9) that match the solution
+  const getNumberCounts = () => {
+    const counts: Record<number, number> = {};
+    for (let i = 1; i <= 9; i++) counts[i] = 0;
+    
+    grid.forEach((row) => {
+      row.forEach((cell) => {
+        if (cell !== 0) {
+          counts[cell]++;
+        }
+      });
+    });
+    return counts;
+  };
+
+  const completedNumbers = getNumberCounts();
 
   const colors = isDark ? {
     btnBg: '#2A2A35',
@@ -16,7 +33,9 @@ export const Numpad: React.FC<{ isNotesMode: boolean; toggleNotesMode: () => voi
     subBg: '#1A1A2E',
     subText: '#8E8EA0',
     danger: 'rgba(239, 68, 68, 0.2)',
-    dangerText: '#EF4444'
+    dangerText: '#EF4444',
+    disabled: '#1e1e2d',
+    disabledText: '#444455'
   } : {
     btnBg: '#FFFFFF',
     btnText: '#1A1A2E',
@@ -24,10 +43,13 @@ export const Numpad: React.FC<{ isNotesMode: boolean; toggleNotesMode: () => voi
     subBg: '#F0F0F8',
     subText: '#6B6B80',
     danger: 'rgba(239, 68, 68, 0.1)',
-    dangerText: '#EF4444'
+    dangerText: '#EF4444',
+    disabled: '#E0E0E8',
+    disabledText: '#A0A0B0'
   };
 
   const handleNumberPress = (n: number) => {
+    if (completedNumbers[n] >= 9) return; // Optional: prevent input if already complete
     if (isNotesMode) toggleNoteToggleAction(n);
     else inputValue(n);
   };
@@ -65,22 +87,35 @@ export const Numpad: React.FC<{ isNotesMode: boolean; toggleNotesMode: () => voi
       </View>
 
       <View style={styles.numbersRow}>
-        {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => (
-          <Pressable 
-            key={n} 
-            style={({pressed}) => [
-                styles.numBtn, 
-                { 
-                    backgroundColor: colors.btnBg, 
-                    shadowColor: isDark ? '#000' : colors.accent,
-                    transform: [{ scale: pressed ? 0.9 : 1 }] 
-                }
-            ]} 
-            onPress={() => handleNumberPress(n)}
-          >
-            <Text style={[styles.numText, { color: isNotesMode ? colors.subText : colors.accent, fontSize: isNotesMode ? 20 : 28 }]}>{n}</Text>
-          </Pressable>
-        ))}
+        {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => {
+          const isComplete = completedNumbers[n] >= 9;
+          return (
+            <Pressable 
+              key={n} 
+              style={({pressed}) => [
+                  styles.numBtn, 
+                  { 
+                      backgroundColor: isComplete ? colors.disabled : colors.btnBg, 
+                      shadowColor: isDark ? '#000' : colors.accent,
+                      transform: [{ scale: pressed && !isComplete ? 0.9 : 1 }],
+                      opacity: isComplete ? 0.6 : 1
+                  }
+              ]} 
+              onPress={() => handleNumberPress(n)}
+              disabled={isComplete}
+            >
+              <Text style={[
+                  styles.numText, 
+                  { 
+                      color: isComplete ? colors.disabledText : (isNotesMode ? colors.subText : colors.accent), 
+                      fontSize: isNotesMode ? 20 : 28 
+                  }
+              ]}>
+                {n}
+              </Text>
+            </Pressable>
+          );
+        })}
       </View>
     </View>
   );
